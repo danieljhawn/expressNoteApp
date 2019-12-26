@@ -1,40 +1,43 @@
-// Dependencies
-// =============================================================
 var express = require("express");
 var path = require("path");
-var note = require("note-taker");
 var fs = require("fs");
 
 // Sets up the Express App
 // =============================================================
 var app = express();
 var PORT = 3000;
-
-var notesTaken = [];
-
-// Sets up the Express app to handle data parsing
+var notesTaken = require("./db/db.json");
+app.use(express.static("./public"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-
 // Basic route that sends the user first to the AJAX Page
-app.get("*", function(req, res) {
-    res.sendFile(path.join(__dirname, "index.html"));
-  });
-  
   app.get("/notes", function(req, res) {
-    res.sendFile(path.join(__dirname, "notes.html"));
+    res.sendFile(path.join(__dirname, "public/notes.html"));
   });
   
   // Displays all notes
   app.get("/api/notes", function(req, res) {
-    return res.json(notes);
+    res.json(notesTaken);
   });
 
   app.post("/api/notes", function (req, res) {
       var newNote = req.body;
+      newNote.id = Math.round(Math.random()*99999);
       console.log(newNote);
       notesTaken.push(newNote);
+      fs.writeFileSync("./db/db.json", JSON.stringify(notesTaken), "utf-8")
       res.json(newNote);
   });
 
+  app.get("*", function(req, res) {
+    res.sendFile(path.join(__dirname, "public/index.html"));
+  });
+
+  app.delete("api/notes/:id", function(req, res) {
+  var id = req.params.id;
+  var newList = req.body;
+  console.log(id);
+  })
+
+app.listen(PORT, function(){console.log("listening on port 3000")});
