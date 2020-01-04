@@ -12,32 +12,39 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // Basic route that sends the user first to the AJAX Page
-  app.get("/notes", function(req, res) {
-    res.sendFile(path.join(__dirname, "public/notes.html"));
-  });
+app.get("/notes", function (req, res) {
+  res.sendFile(path.join(__dirname, "public/notes.html"));
+});
+
+// Displays all notes
+app.get("/api/notes", function (req, res) {
+  res.json(notesTaken);
+});
+
+app.post("/api/notes", function (req, res) {
+  var newNote = req.body;
+  newNote.id = Math.round(Math.random() * 99999);
+  console.log(newNote);
+  notesTaken.push(newNote);
+  fs.writeFileSync("./db/db.json", JSON.stringify(notesTaken), "utf-8")
+  res.json(newNote);
+});
+
+app.get("*", function (req, res) {
+  res.sendFile(path.join(__dirname, "public/index.html"));
+});
+
+app.delete("/api/notes/:id", function (req, res) {
+  var tempNotes = [];
+  var notesTaken = require("./db/db.json");
+      for (let i =0; i <notesTaken.length; i++) {
+          if ( req.params.id !== notesTaken[i].id)
+          {tempNotes.push(notesTaken[i])}
+      };
   
-  // Displays all notes
-  app.get("/api/notes", function(req, res) {
-    res.json(notesTaken);
+      fs.writeFileSync("./db/db.json", JSON.stringify(tempNotes), "utf-8")
+      res.json(true);
   });
+ 
 
-  app.post("/api/notes", function (req, res) {
-      var newNote = req.body;
-      newNote.id = Math.round(Math.random()*99999);
-      console.log(newNote);
-      notesTaken.push(newNote);
-      fs.writeFileSync("./db/db.json", JSON.stringify(notesTaken), "utf-8")
-      res.json(newNote);
-  });
-
-  app.get("*", function(req, res) {
-    res.sendFile(path.join(__dirname, "public/index.html"));
-  });
-
-  app.delete("api/notes/:id", function(req, res) {
-  var id = req.params.id;
-  var newList = req.body;
-  console.log(id);
-  })
-
-app.listen(PORT, function(){console.log("listening on port 3000")});
+app.listen(PORT, function () { console.log("listening on port 3000") });
